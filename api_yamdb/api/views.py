@@ -19,7 +19,7 @@ from api.permissions import (
     IsAdminUser,
     IsAuthorOrModerAdminPermission,
 )
-from api.v1.serializers import (
+from api.serializers import (
     CategorySerializer,
     CommentSerializer,
     GenreSerializer,
@@ -31,9 +31,9 @@ from api.v1.serializers import (
     UsersMeSerializer,
     YamdbTokenObtainPairSerializer,
 )
-from api.v1.utils import send_confirmation_code
+from api.utils import send_confirmation_code
 from reviews.models import Category, Comment, Genre, Review, Title
-from user.models import User
+from users.models import User
 
 
 class UserViewSet(ModelViewSet):
