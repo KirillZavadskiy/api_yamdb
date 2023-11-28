@@ -6,7 +6,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Category, Comment, Genre, Review, Title
-from user.models import User
+from users.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):

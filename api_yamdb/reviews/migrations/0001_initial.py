@@ -54,4 +54,24 @@ class Migration(migrations.Migration):
             name='title',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='reviews.title', verbose_name='Произведение'),
         ),
+
+        migrations.AddField(
+            model_name='comment',
+            name='review',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comments', to='reviews.review', verbose_name='Отзыв'),
+        ),
+        migrations.AddConstraint(
+            model_name='review',
+            constraint=models.UniqueConstraint(fields=('author', 'title'), name='unique_review'),
+        ),
+        migrations.AddField(
+            model_name='review',
+            name='author',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reviews', to=settings.AUTH_USER_MODEL, verbose_name='Автор'),
+        ),
+        migrations.AddField(
+            model_name='review',
+            name='title',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='reviews', to='reviews.title', verbose_name='Название произведения'),
+        ),
     ]

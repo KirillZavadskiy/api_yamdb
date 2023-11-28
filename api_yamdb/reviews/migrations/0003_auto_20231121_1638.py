@@ -20,6 +20,20 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
+            name='Review',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('text', models.TextField(verbose_name='текст ревью')),
+                ('score', models.PositiveIntegerField(validators=[django.core.validators.MinValueValidator(1, message='Оценка меньше допустимой'), django.core.validators.MaxValueValidator(10, message='Оценка больше допустимой')], verbose_name='Оценка')),
+                ('pub_date', models.DateTimeField(auto_now_add=True, verbose_name='Дата публикации')),
+            ],
+            options={
+                'verbose_name': 'Отзыв',
+                'verbose_name_plural': 'Отзывы',
+                'ordering': ('-pub_date',),
+            },
+        ),
+        migrations.CreateModel(
             name='Genre',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -34,6 +48,19 @@ class Migration(migrations.Migration):
                 ('genre', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='reviews.genre', verbose_name='Жанр')),
                 ('title', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='reviews.title', verbose_name='Произведение')),
             ],
+        ),
+                migrations.CreateModel(
+            name='Comment',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('text', models.TextField(verbose_name='текст')),
+                ('pub_date', models.DateTimeField(auto_now_add=True, verbose_name='Дата публикации')),
+            ],
+            options={
+                'verbose_name': 'Комментарий',
+                'verbose_name_plural': 'Комментарии',
+                'ordering': ('-pub_date',),
+            },
         ),
         migrations.AddField(
             model_name='title',
