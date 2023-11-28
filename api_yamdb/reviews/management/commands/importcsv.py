@@ -18,7 +18,7 @@ model_csv_equal = {
 
 class Command(BaseCommand):
     """Команда для импорта csv в базу
-    Вызов python3 manage.py importcsv
+    Вызов python manage.py importcsv
     из терминала в соответствующей папке
     """
 
