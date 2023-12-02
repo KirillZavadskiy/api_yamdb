@@ -1,62 +1,11 @@
 import re
 
-from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
-
-
-class UserSerializer(serializers.ModelSerializer):
-    """Сериализатор модели User."""
-
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role',
-        )
-
-
-class UsersMeSerializer(UserSerializer):
-    """Сериализатор для эндпоинта users/me/."""
-
-    role = serializers.CharField(read_only=True)
-
-
-class YamdbTokenObtainPairSerializer(serializers.Serializer):
-    """Сериализатор получения токена."""
-
-    username = serializers.CharField(max_length=150)
-    confirmation_code = serializers.CharField(max_length=20)
-
-    def validate(self, data):
-        user = get_object_or_404(User, username=data.get('username'))
-        if user.confirmation_code != data.get('confirmation_code'):
-            raise serializers.ValidationError('Не верный confirmation_code')
-        return {'access': str(AccessToken.for_user(user))}
-
-
-class SignupSerializer(serializers.ModelSerializer):
-    """Сериализатор для регистрации пользователей."""
-
-    def validate_username(self, value):
-        if value == 'me':
-            raise serializers.ValidationError(
-                'me нельзя использовать в качестве имени.',
-            )
-        return value
-
-    class Meta:
-        fields = ('username', 'email')
-        model = User
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -83,7 +32,7 @@ class GenreSerializer(serializers.ModelSerializer):
         """Проверка соответствия слага жанра."""
         if not re.fullmatch(r'^[-a-zA-Z0-9_]+$', value):
             raise serializers.ValidationError(
-                'Псевдоним жанра не соотвествует формату',
+                'Псевдоним жанра не соотвествует формату.',
             )
         return value
 
@@ -132,7 +81,7 @@ class TitleReadSerializer(TitleSerializer):
         fields = (
             'id', 'name', 'year',
             'rating', 'description',
-            'genre', 'category'
+            'genre', 'category',
         )
 
 
@@ -156,12 +105,12 @@ class TitleSerializer(serializers.ModelSerializer):
 
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
-        slug_field='slug'
+        slug_field='slug',
     )
     genre = serializers.SlugRelatedField(
         queryset=Genre.objects.all(),
         slug_field='slug',
-        many=True
+        many=True,
     )
 
     class Meta:
@@ -242,7 +191,7 @@ class SignUpSerializer(serializers.ModelSerializer):
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+\Z',
         max_length=150,
-        required=True
+        required=True,
     )
 
     class Meta:
