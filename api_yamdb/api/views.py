@@ -6,75 +6,30 @@ from django.db import IntegrityError
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework import filters, mixins, permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import (SAFE_METHODS, AllowAny,
-                                        IsAuthenticated,
-                                        IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import (
+    SAFE_METHODS, IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework_simplejwt.views import TokenObtainPairView
 
 from api.filters import TitleFilter
 from api.permissions import (IsAdminOrReadOnly, IsAuthorOrModerAdminPermission,
                              UserIsAdmin)
-from api.serializers import (CategorySerializer, CommentSerializer,
-                             GenreSerializer, ReviewSerializer,
-                             SignUpSerializer, SignupSerializer,
-                             TitleReadSerializer, TitleWriteSerializer,
-                             TokenSerializer, UserSerializer,
-                             UsersMeSerializer, YamdbTokenObtainPairSerializer)
-from api.utils import send_confirmation_code
+from api.serializers import (
+    CategorySerializer, CommentSerializer,
+    GenreSerializer, ReviewSerializer,
+    SignUpSerializer,
+    TitleReadSerializer, TitleWriteSerializer,
+    TokenSerializer, UserSerializer,
+)
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 
 HTTP_METHOD_WITHOUT_PUT = ('get', 'post', 'patch', 'delete')
-
-
-class UsersMeView(APIView):
-    """Вью для эндпоинта users/me/."""
-
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request):
-        """Метод GET."""
-        me = get_object_or_404(User, username=request.user.username)
-        serializer = UserSerializer(me)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def patch(self, request):
-        """Метод PATCH."""
-        me = get_object_or_404(User, username=request.user.username)
-        serializer = UsersMeSerializer(me, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class YamdbTokenObtainPairView(TokenObtainPairView):
-    """Вью для получения токена."""
-
-    serializer_class = YamdbTokenObtainPairSerializer
-
-
-class SignupView(APIView):
-    """Вью для регистрации пользователей."""
-
-    permission_classes = (AllowAny,)
-
-    def post(self, request):
-        """Метод POST."""
-        serializer = SignupSerializer(data=request.data)
-        if User.objects.filter(username=request.data.get('username'),
-                               email=request.data.get('email')).exists():
-            send_confirmation_code(request)
-            return Response(request.data, status=status.HTTP_200_OK)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        send_confirmation_code(request)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CreateListDestroyViewSet(mixins.CreateModelMixin,
@@ -192,11 +147,11 @@ class SignUpAPIView(APIView):
         try:
             user, _ = User.objects.get_or_create(
                 email=email,
-                username=username
+                username=username,
             )
         except IntegrityError:
             raise ValidationError(
-                detail='Нужно проверить имя пользователя и почту.'
+                detail='Нужно проверить имя пользователя и почту.',
             )
 
         confirmation_code = self.make_token(user)
