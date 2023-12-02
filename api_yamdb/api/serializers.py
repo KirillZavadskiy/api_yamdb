@@ -3,6 +3,7 @@ import re
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import AccessToken
 
 from reviews.models import Category, Comment, Genre, Review, Title
@@ -22,7 +23,6 @@ class UserSerializer(serializers.ModelSerializer):
             'bio',
             'role',
         )
-
 
 
 class UsersMeSerializer(UserSerializer):
@@ -50,7 +50,7 @@ class SignupSerializer(serializers.ModelSerializer):
     def validate_username(self, value):
         if value == 'me':
             raise serializers.ValidationError(
-                'me нельзя использовать в качестве имени',
+                'me нельзя использовать в качестве имени.',
             )
         return value
 
@@ -66,7 +66,7 @@ class CategorySerializer(serializers.ModelSerializer):
         """Проверка соответствия слага категории."""
         if not re.fullmatch(r'^[-a-zA-Z0-9_]+$', value):
             raise serializers.ValidationError(
-                'Псевдоним категории не соотвествует формату',
+                'Слаг категории не соотвествует формату.',
             )
         return value
 
@@ -121,6 +121,8 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class TitleReadSerializer(TitleSerializer):
+    """Сериализатор произведения для чтения."""
+
     rating = serializers.IntegerField(read_only=True)
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
@@ -135,7 +137,7 @@ class TitleReadSerializer(TitleSerializer):
 
 
 class TitleWriteSerializer(TitleSerializer):
-    """Сериализатор модели Title для записи."""
+    """Сериализатор произведения для записи."""
 
     category = serializers.SlugRelatedField(
         slug_field='slug',
@@ -147,12 +149,10 @@ class TitleWriteSerializer(TitleSerializer):
         queryset=Genre.objects.all(),
         many=True,
     )
-class TitleSerializer(serializers.ModelSerializer):
-    """
-    Сериализатор для работы с произведениями.
 
-    Метод validate проверяет, вышло ли произведение
-    """
+
+class TitleSerializer(serializers.ModelSerializer):
+    """Сериализатор для работы с произведениями."""
 
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
@@ -167,21 +167,6 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
-
-
-class ReadOnlyTitleSerializer(serializers.ModelSerializer):
-    rating = serializers.IntegerField(read_only=True)
-    genre = GenreSerializer(many=True)
-    category = CategorySerializer()
-
-    class Meta:
-        model = Title
-        fields = (
-            'id', 'name', 'year',
-            'rating', 'description',
-            'genre', 'category'
-        )
-
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -206,14 +191,14 @@ class ReviewSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        """Запрещает пользователям оставлять повторные отзывы"""
+        """Запрещает пользователям оставлять повторные отзывы."""
         if not self.context.get('request').method == 'POST':
             return data
         author = self.context.get('request').user
         title_id = self.context.get('view').kwargs.get('title_id')
         if Review.objects.filter(author=author, title=title_id).exists():
             raise serializers.ValidationError(
-                'Вы уже оставляли отзыв на это произведение',
+                'Вы уже оставляли отзыв на это произведение.',
             )
         return data
 
@@ -241,16 +226,8 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
 
 
-from django.contrib.auth import get_user_model
-from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
-
-
-User = get_user_model()
-
-
 class UserSerializer(serializers.ModelSerializer):
-    """Сериалайзер модели User"""
+    """Сериалайзер модели User."""
 
     class Meta:
         model = User
@@ -260,6 +237,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class SignUpSerializer(serializers.ModelSerializer):
     """Сериализатор для аyтэнтификации. Использует username, email."""
+
     email = serializers.EmailField(max_length=254)
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+\Z',
@@ -278,8 +256,11 @@ class SignUpSerializer(serializers.ModelSerializer):
 
 
 class TokenSerializer(serializers.ModelSerializer):
-    """Сериализатор для получения токена. Использует confirmation_code.""
-     "" Если питест не съест еще имя пользователя придется использовать."""
+    """
+    Сериализатор для получения токена. Использует confirmation_code.
+    Если питест не съест еще имя пользователя придется использовать.
+    """
+
     confirmation_code = serializers.CharField(required=True)
 
     class Meta:

@@ -1,52 +1,36 @@
+import http
+import uuid
+
+from django.core.mail import send_mail
+from django.db import IntegrityError
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, status, viewsets
-from rest_framework.permissions import (
-    SAFE_METHODS,
-    AllowAny,
-    IsAuthenticated,
-    IsAuthenticatedOrReadOnly,
-)
+from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import (SAFE_METHODS, AllowAny,
+                                        IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
+from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from api.filters import TitleFilter
-from api.permissions import (
-    IsAdminOrReadOnly,
-    IsAdminUser,
-    IsAuthorOrModerAdminPermission,
-)
-from api.serializers import (
-    CategorySerializer,
-    CommentSerializer,
-    GenreSerializer,
-    ReviewSerializer,
-    SignupSerializer,
-    TitleReadSerializer,
-    TitleWriteSerializer,
-    UserSerializer,
-    UsersMeSerializer,
-    YamdbTokenObtainPairSerializer,
-    ReadOnlyTitleSerializer,
-    TitleSerializer
-)
+from api.permissions import (IsAdminOrReadOnly, IsAuthorOrModerAdminPermission,
+                             UserIsAdmin)
+from api.serializers import (CategorySerializer, CommentSerializer,
+                             GenreSerializer, ReviewSerializer,
+                             SignUpSerializer, SignupSerializer,
+                             TitleReadSerializer, TitleWriteSerializer,
+                             TokenSerializer, UserSerializer,
+                             UsersMeSerializer, YamdbTokenObtainPairSerializer)
 from api.utils import send_confirmation_code
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 
-
-class UserViewSet(ModelViewSet):
-    """Вьюсет для модели User."""
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    lookup_field = 'username'
-    http_method_names = ('get', 'post', 'patch', 'delete')
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('username',)
-    permission_classes = (IsAuthenticated, IsAdminUser)
+HTTP_METHOD_WITHOUT_PUT = ('get', 'post', 'patch', 'delete')
 
 
 class UsersMeView(APIView):
@@ -70,7 +54,7 @@ class UsersMeView(APIView):
 
 
 class YamdbTokenObtainPairView(TokenObtainPairView):
-    """Вью для получения токена"""
+    """Вью для получения токена."""
 
     serializer_class = YamdbTokenObtainPairSerializer
 
@@ -129,8 +113,6 @@ class GenreViewSet(CreateListDestroyViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Title."""
 
-    """Вьюсет для модели Title."""
-
     queryset = Title.objects.annotate(
         rating=Avg('reviews__score'),
     ).order_by('name')
@@ -140,12 +122,12 @@ class TitleViewSet(viewsets.ModelViewSet):
         IsAuthenticatedOrReadOnly,
         IsAdminOrReadOnly,
     )
-    http_method_names = ['get', 'post', 'head', 'delete', 'patch']
+    http_method_names = HTTP_METHOD_WITHOUT_PUT
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
             return TitleReadSerializer
-        return TitleWriteSerializer 
+        return TitleWriteSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -156,7 +138,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         IsAuthenticatedOrReadOnly,
         IsAuthorOrModerAdminPermission,
     )
-    http_method_names = ['get', 'post', 'head', 'delete', 'patch']
+    http_method_names = HTTP_METHOD_WITHOUT_PUT
 
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')
@@ -177,7 +159,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         IsAuthenticatedOrReadOnly,
         IsAuthorOrModerAdminPermission,
     )
-    http_method_names = ['get', 'post', 'head', 'delete', 'patch']
+    http_method_names = HTTP_METHOD_WITHOUT_PUT
 
     def perform_create(self, serializer):
         """Создание нового коммента."""
@@ -194,29 +176,6 @@ class CommentViewSet(viewsets.ModelViewSet):
         review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, id=review_id, title=title)
         return Comment.objects.filter(review=review)
-
-
-import http
-import uuid
-
-from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
-from django.db import IntegrityError
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, permissions, viewsets
-from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
-from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework.views import APIView
-
-from .permissions import UserIsAdmin
-from .serializers import (
-    SignUpSerializer, TokenSerializer, UserSerializer
-)
-
-
-User = get_user_model()
 
 
 class SignUpAPIView(APIView):
@@ -237,7 +196,7 @@ class SignUpAPIView(APIView):
             )
         except IntegrityError:
             raise ValidationError(
-                detail='Нужно проверить имя пользователя и почту'
+                detail='Нужно проверить имя пользователя и почту.'
             )
 
         confirmation_code = self.make_token(user)
@@ -293,7 +252,7 @@ class UserViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter, DjangoFilterBackend)
     search_fields = ('username',)
     lookup_field = 'username'
-    http_method_names = ['get', 'post', 'patch', 'delete']
+    http_method_names = HTTP_METHOD_WITHOUT_PUT
 
     @action(methods=['GET', 'PATCH'],
             detail=False,
@@ -307,4 +266,4 @@ class UserViewSet(viewsets.ModelViewSet):
                 partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save(role=request.user.role)
-        return Response(serializer.data)        
+        return Response(serializer.data)

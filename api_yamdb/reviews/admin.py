@@ -6,6 +6,8 @@ from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
+    """Модель категории в админке."""
+
     list_display = (
         'pk',
         'name',
@@ -18,6 +20,8 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Genre)
 class GenreAdmin(admin.ModelAdmin):
+    """Модель жанра в админке."""
+
     list_display = (
         'pk',
         'name',
@@ -30,12 +34,15 @@ class GenreAdmin(admin.ModelAdmin):
 
 class GenreInline(admin.TabularInline):
     """Инлайн для работы с жанрами произведения в админке."""
+
     model = GenreTitle
     extra = 2
 
 
 @admin.register(Title)
 class TitleAdmin(admin.ModelAdmin):
+    """Модель произведения в админке."""
+
     list_display = (
         'pk',
         'name',
@@ -60,6 +67,8 @@ class TitleAdmin(admin.ModelAdmin):
 
 @admin.register(GenreTitle)
 class GenreTitleAdmin(admin.ModelAdmin):
+    """Связанные модели Жанр/произведение в админке."""
+
     list_display = (
         'pk',
         'genre',
@@ -71,6 +80,8 @@ class GenreTitleAdmin(admin.ModelAdmin):
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
+    """Модель отзывов в админке."""
+
     list_display = (
         'pk',
         'author',
@@ -86,6 +97,8 @@ class ReviewAdmin(admin.ModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
+    """Модель комментариев в админке."""
+
     list_display = (
         'pk',
         'author',

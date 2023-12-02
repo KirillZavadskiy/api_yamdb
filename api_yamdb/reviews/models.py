@@ -2,6 +2,8 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from users.models import User
 
+AMT_SIGN_TITLE = 30
+
 
 class Category(models.Model):
     """Модель категории."""
@@ -23,7 +25,7 @@ class Category(models.Model):
 
     def __str__(self):
         """Возвращает слаг категории."""
-        return self.slug
+        return self.slug[:AMT_SIGN_TITLE]
 
 
 class Genre(models.Model):
@@ -45,7 +47,7 @@ class Genre(models.Model):
 
     def __str__(self):
         """Возвращает слаг жанра."""
-        return self.slug
+        return self.slug[:AMT_SIGN_TITLE]
 
 
 class Title(models.Model):
@@ -83,11 +85,11 @@ class Title(models.Model):
 
     def __str__(self):
         """Возвращает название тайтла."""
-        return self.name
+        return self.name[:AMT_SIGN_TITLE]
 
 
 class GenreTitle(models.Model):
-    """Связь жанра и тайтла."""
+    """Связь жанра и произведения."""
 
     genre = models.ForeignKey(
         Genre,
@@ -98,7 +100,7 @@ class GenreTitle(models.Model):
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
-        verbose_name='Тайтл',
+        verbose_name='Произведение',
     )
 
     class Meta:
@@ -110,7 +112,7 @@ class GenreTitle(models.Model):
         )
 
     def __str__(self):
-        return f'{self.title} {self.genre}'
+        return f'{self.title} {self.genre}'[:AMT_SIGN_TITLE]
 
 
 class Review(models.Model):
@@ -160,7 +162,7 @@ class Review(models.Model):
 
     def __str__(self):
         """Возвращает текст отзыва."""
-        return self.text
+        return self.text[:AMT_SIGN_TITLE]
 
 
 class Comment(models.Model):
@@ -191,4 +193,4 @@ class Comment(models.Model):
 
     def __str__(self):
         """Возвращает текст комментария."""
-        return self.text
+        return self.text[:AMT_SIGN_TITLE]
