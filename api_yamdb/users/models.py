@@ -19,11 +19,11 @@ class User(AbstractUser):
     username = models.CharField(
         max_length=150,
         unique=True,
-        validators=([RegexValidator(regex=r'^[\w.@+-]+\Z')])
+        validators=([RegexValidator(regex=r'^[\w.@+-]+\Z')]),
     )
     email = models.EmailField(
         max_length=254,
-        unique=True
+        unique=True,
     )
     first_name = models.CharField(
         verbose_name='Имя.',
@@ -34,25 +34,25 @@ class User(AbstractUser):
         verbose_name='Фамилия.',
         max_length=150,
         blank=True,
-        null=True
+        null=True,
     )
     bio = models.TextField(
         verbose_name='Биография',
         blank=True,
-        null=True
+        null=True,
     )
     role = models.CharField(
         verbose_name='Роль',
         max_length=100,
         choices=USER_ROLES,
         default=USER,
-        blank=True
+        blank=True,
     )
     confirmation_code = models.UUIDField(
         verbose_name='Код',
         null=True,
         max_length=40,
-        blank=True
+        blank=True,
     )
 
     class Meta:
