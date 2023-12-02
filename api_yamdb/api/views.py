@@ -30,6 +30,8 @@ from api.serializers import (
     UserSerializer,
     UsersMeSerializer,
     YamdbTokenObtainPairSerializer,
+    ReadOnlyTitleSerializer,
+    TitleSerializer
 )
 from api.utils import send_confirmation_code
 from reviews.models import Category, Comment, Genre, Review, Title
@@ -127,6 +129,8 @@ class GenreViewSet(CreateListDestroyViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели Title."""
 
+    """Вьюсет для модели Title."""
+
     queryset = Title.objects.annotate(
         rating=Avg('reviews__score'),
     ).order_by('name')
@@ -136,11 +140,12 @@ class TitleViewSet(viewsets.ModelViewSet):
         IsAuthenticatedOrReadOnly,
         IsAdminOrReadOnly,
     )
+    http_method_names = ['get', 'post', 'head', 'delete', 'patch']
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
             return TitleReadSerializer
-        return TitleWriteSerializer
+        return TitleWriteSerializer 
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -151,6 +156,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         IsAuthenticatedOrReadOnly,
         IsAuthorOrModerAdminPermission,
     )
+    http_method_names = ['get', 'post', 'head', 'delete', 'patch']
 
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')
@@ -171,6 +177,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         IsAuthenticatedOrReadOnly,
         IsAuthorOrModerAdminPermission,
     )
+    http_method_names = ['get', 'post', 'head', 'delete', 'patch']
 
     def perform_create(self, serializer):
         """Создание нового коммента."""

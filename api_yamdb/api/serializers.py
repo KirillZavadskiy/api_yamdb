@@ -121,10 +121,17 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class TitleReadSerializer(TitleSerializer):
-    """Сериализатор модели Title для чтения."""
+    rating = serializers.IntegerField(read_only=True)
+    genre = GenreSerializer(many=True)
+    category = CategorySerializer()
 
-    genre = GenreSerializer(read_only=True, many=True)
-    category = CategorySerializer(read_only=True)
+    class Meta:
+        model = Title
+        fields = (
+            'id', 'name', 'year',
+            'rating', 'description',
+            'genre', 'category'
+        )
 
 
 class TitleWriteSerializer(TitleSerializer):
@@ -140,6 +147,41 @@ class TitleWriteSerializer(TitleSerializer):
         queryset=Genre.objects.all(),
         many=True,
     )
+class TitleSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для работы с произведениями.
+
+    Метод validate проверяет, вышло ли произведение
+    """
+
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(),
+        slug_field='slug'
+    )
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(),
+        slug_field='slug',
+        many=True
+    )
+
+    class Meta:
+        model = Title
+        fields = '__all__'
+
+
+class ReadOnlyTitleSerializer(serializers.ModelSerializer):
+    rating = serializers.IntegerField(read_only=True)
+    genre = GenreSerializer(many=True)
+    category = CategorySerializer()
+
+    class Meta:
+        model = Title
+        fields = (
+            'id', 'name', 'year',
+            'rating', 'description',
+            'genre', 'category'
+        )
+
 
 
 class ReviewSerializer(serializers.ModelSerializer):
