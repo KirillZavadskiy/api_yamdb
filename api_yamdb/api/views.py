@@ -1,6 +1,7 @@
 import http
 import uuid
 
+from django.conf import settings
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.db.models import Avg
@@ -137,9 +138,7 @@ class SignUpAPIView(APIView):
     """Отправляем запрос с именем и почтой. Джанго высылает письмо на почту."""
 
     def post(self, *args, **kwargs):
-        print(*args, **kwargs)
         serializer = SignUpSerializer(data=self.request.data)
-        print(serializer)
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data.get('username')
         email = serializer.validated_data.get('email')
@@ -158,7 +157,7 @@ class SignUpAPIView(APIView):
 
         send_mail(subject='Подтверждение пользователя',
                   message=f'Код : {confirmation_code}',
-                  from_email='new@yamdb.ru',
+                  from_email=settings.SENDER_EMAIL,
                   recipient_list=[user.email])
         return Response({'email': f'{email}',
                          'username': f'{username}'},
@@ -221,4 +220,4 @@ class UserViewSet(viewsets.ModelViewSet):
                 partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save(role=request.user.role)
-        return Response(serializer.data)
+        return Response(serializer.data, status=http.HTTPStatus.OK)

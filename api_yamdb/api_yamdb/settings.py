@@ -11,7 +11,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -67,7 +66,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    },
 }
 
 
@@ -105,15 +104,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny'
+        'rest_framework.permissions.AllowAny',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication'
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
     'DEFAULT_FILTER_BACKENDS': [
-        'django_filters.rest_framework.DjangoFilterBackend'
+        'django_filters.rest_framework.DjangoFilterBackend',
     ],
 
 }
@@ -134,4 +133,17 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
-AUTH_USER_MODEL = "users.User"
+AUTH_USER_MODEL = 'users.User'
+
+CON_CODE_LENGTH = 40
+
+
+FIRST_NAME_LENGTH = 150
+
+EMAIL_LENGTH = 254
+
+LAST_NAME_LENGTH = 150
+
+ROLE_LENGTH = 100
+
+USERNAME_LENGTH = 150
