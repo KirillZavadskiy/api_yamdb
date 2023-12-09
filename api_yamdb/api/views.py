@@ -1,7 +1,7 @@
 import http
-import uuid
 
 from django.conf import settings
+from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.db.models import Avg
@@ -153,7 +153,7 @@ class SignUpAPIView(APIView):
                 detail='Нужно проверить имя пользователя и почту.',
             )
 
-        confirmation_code = self.make_token(user)
+        confirmation_code = default_token_generator.make_token(user)
 
         send_mail(subject='Подтверждение пользователя',
                   message=f'Код : {confirmation_code}',
@@ -162,14 +162,6 @@ class SignUpAPIView(APIView):
         return Response({'email': f'{email}',
                          'username': f'{username}'},
                         status=http.HTTPStatus.OK)
-
-    @staticmethod
-    def make_token(user: User) -> uuid.UUID:
-        """Создаем код подтверждения и сохраняем в модели юзера."""
-        confirmation_code: uuid.UUID = uuid.uuid4()
-        user.confirmation_code = confirmation_code
-        user.save()
-        return confirmation_code
 
 
 class TokenAPIView(APIView):
