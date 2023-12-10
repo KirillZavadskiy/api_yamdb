@@ -72,15 +72,14 @@ class ReviewViewSet(viewsets.ModelViewSet):
     )
     http_method_names = HTTP_METHOD_WITHOUT_PUT
 
+    def get_post(self):
+           return get_object_or_404(Title, id=self.kwargs.get('title_id'))
+
     def perform_create(self, serializer):
-        title_id = self.kwargs.get('title_id')
-        title = get_object_or_404(Title, id=title_id)
-        serializer.save(author=self.request.user, title=title)
+        serializer.save(author=self.request.user, title=self.get_post())
 
     def get_queryset(self):
-        title_id = self.kwargs.get('title_id')
-        title = get_object_or_404(Title, id=title_id)
-        return title.reviews.all()
+        return self.get_post().reviews.all()
 
 
 class CommentViewSet(viewsets.ModelViewSet):
