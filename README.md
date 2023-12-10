@@ -39,7 +39,6 @@ python manage.py importcsv
 - Получение списка всех отзывов *http://127.0.0.1:8000/api/v1/titles/{title_id}/reviews/* 
 - Получение списка всех комментариев к отзыву *http://127.0.0.1:8000/api/v1/titles/{title_id}/reviews/{review_id}/comments/*  
 - Получение списка всех пользователей *http://127.0.0.1:8000/api/v1/users/*
-- Получение списка всех пользователей *http://127.0.0.1:8000/api/v1/users/*
 
 # Использованные внешние библиотеки. 
 - rest_framework 
