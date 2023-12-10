@@ -1,7 +1,9 @@
 from django.contrib import admin
 from django.db.models import Avg
-
 from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
+from django.shortcuts import get_object_or_404
+
+admin.site.empty_value_display = 'Значение отсутствует'
 
 
 @admin.register(Category)
@@ -13,7 +15,6 @@ class CategoryAdmin(admin.ModelAdmin):
         'name',
         'slug',
     )
-    empty_value_display = 'значение отсутствует'
     list_filter = ('name',)
     search_fields = ('name',)
 
@@ -27,7 +28,6 @@ class GenreAdmin(admin.ModelAdmin):
         'name',
         'slug',
     )
-    empty_value_display = 'значение отсутствует'
     list_filter = ('name',)
     search_fields = ('name',)
 
@@ -50,19 +50,25 @@ class TitleAdmin(admin.ModelAdmin):
         'description',
         'category',
         'get_rating',
+        'display_genre',
     )
     inlines = (
         GenreInline,
     )
-    empty_value_display = 'значение отсутствует'
     list_filter = ('name',)
+    list_editable = ('category',)
 
+    @admin.display(description='Рейтинг',)
     def get_rating(self, object):
         """Вычисляет рейтинг произведения."""
         rating = object.reviews.aggregate(average_score=Avg('score'))
-        return round(rating.get('average_score'), 1)
+        if (r := rating.get('average_score')) is not None:
+            return round(r, 1)
+        return r
 
-    get_rating.short_description = 'Рейтинг'
+    @admin.display(description='Жанр',)
+    def display_genre(self, object):
+        return ' ,'.join((genre.name for genre in object.genre.all()))
 
 
 @admin.register(GenreTitle)
@@ -74,7 +80,6 @@ class GenreTitleAdmin(admin.ModelAdmin):
         'genre',
         'title',
     )
-    empty_value_display = 'значение отсутствует'
     list_filter = ('genre',)
 
 
@@ -90,7 +95,6 @@ class ReviewAdmin(admin.ModelAdmin):
         'pub_date',
         'title',
     )
-    empty_value_display = 'значение отсутствует'
     list_filter = ('author', 'score', 'pub_date')
     search_fields = ('author',)
 
@@ -106,6 +110,5 @@ class CommentAdmin(admin.ModelAdmin):
         'pub_date',
         'review',
     )
-    empty_value_display = 'значение отсутствует'
     list_filter = ('author', 'pub_date')
     search_fields = ('author',)

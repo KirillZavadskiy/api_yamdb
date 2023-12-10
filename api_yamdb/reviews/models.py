@@ -1,5 +1,7 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
+
 from users.models import User
 
 AMT_SIGN_TITLE = 30
@@ -14,7 +16,6 @@ class Category(models.Model):
         verbose_name='Название категории',
     )
     slug = models.SlugField(
-        max_length=50,
         unique=True,
         verbose_name='Псевдоним категории',
     )
@@ -51,18 +52,24 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
-    """Модель тайтла."""
+    """Модель произведения."""
 
     name = models.CharField(
         max_length=256,
-        verbose_name='Название тайтла',
+        verbose_name='Название произведения',
     )
-    year = models.PositiveIntegerField(
+    year = models.PositiveSmallIntegerField(
         null=True,
         verbose_name='Год выпуска',
+        validators=[
+            MaxValueValidator(
+                int(timezone.now().year),
+                message='Год выпуска превышает текущий.'
+            )
+        ],
     )
     description = models.TextField(
-        verbose_name='Описание тайтла',
+        verbose_name='Описание произведения',
         null=True,
         blank=True,
     )
@@ -73,7 +80,7 @@ class Title(models.Model):
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
-        verbose_name='Категория тайтла',
+        verbose_name='Категория произведения',
         null=True,
         blank=True,
     )
@@ -84,7 +91,7 @@ class Title(models.Model):
         default_related_name = 'titles'
 
     def __str__(self):
-        """Возвращает название тайтла."""
+        """Возвращает название произведения."""
         return self.name[:AMT_SIGN_TITLE]
 
 

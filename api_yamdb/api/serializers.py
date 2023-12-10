@@ -1,5 +1,3 @@
-import re
-
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -11,14 +9,6 @@ from users.models import User
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор модели Category."""
 
-    def validate_slug(self, value):
-        """Проверка соответствия слага категории."""
-        if not re.fullmatch(r'^[-a-zA-Z0-9_]+$', value):
-            raise serializers.ValidationError(
-                'Слаг категории не соотвествует формату.',
-            )
-        return value
-
     class Meta:
         fields = ('name', 'slug')
         model = Category
@@ -27,14 +17,6 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор модели Genre."""
-
-    def validate_slug(self, value):
-        """Проверка соответствия слага жанра."""
-        if not re.fullmatch(r'^[-a-zA-Z0-9_]+$', value):
-            raise serializers.ValidationError(
-                'Псевдоним жанра не соотвествует формату.',
-            )
-        return value
 
     class Meta:
         fields = ('name', 'slug')
@@ -46,15 +28,6 @@ class TitleSerializer(serializers.ModelSerializer):
     """Базовый сериализатор модели Title."""
 
     rating = serializers.IntegerField(read_only=True)
-
-    def validate_year(self, value):
-        """Проверка года на будущее время."""
-        current_year = timezone.now().year
-        if value > current_year:
-            raise serializers.ValidationError(
-                'Марти, ты опять взял Делориан без спроса?!',
-            )
-        return value
 
     class Meta:
         model = Title
@@ -68,11 +41,20 @@ class TitleSerializer(serializers.ModelSerializer):
             'rating',
         )
 
+    def validate_year(self, value):
+        """Проверка года на будущее время."""
+        current_year = timezone.now().year
+        if value > current_year:
+            raise serializers.ValidationError(
+                'Некорректно указан год выпуска.',
+            )
+        return value
 
-class TitleReadSerializer(TitleSerializer):
+
+class TitleReadSerializer(serializers.ModelSerializer):
     """Сериализатор произведения для чтения."""
 
-    rating = serializers.IntegerField(read_only=True)
+    rating = serializers.IntegerField(read_only=True, default=0)
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
 
@@ -99,29 +81,17 @@ class TitleWriteSerializer(TitleSerializer):
         many=True,
     )
 
-
-class TitleSerializer(serializers.ModelSerializer):
-    """Сериализатор для работы с произведениями."""
-
-    category = serializers.SlugRelatedField(
-        queryset=Category.objects.all(),
-        slug_field='slug',
-    )
-    genre = serializers.SlugRelatedField(
-        queryset=Genre.objects.all(),
-        slug_field='slug',
-        many=True,
-    )
-
-    class Meta:
-        model = Title
-        fields = '__all__'
+    def to_representation(self, instance):
+        return TitleReadSerializer(instance).data
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Review."""
 
-    author = serializers.StringRelatedField(read_only=True)
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
     title = serializers.SlugRelatedField(
         slug_field='id',
         many=False,

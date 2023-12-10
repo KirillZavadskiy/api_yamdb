@@ -1,18 +1,19 @@
-import csv
+import csv, os
 
 from django.core.management.base import BaseCommand
 
 from reviews.models import (Category, Comment, Genre, GenreTitle, Review,
                             Title, User)
 
+short_way = 'static/data/'
 model_csv_equal = {
-    'static/data/category.csv': Category,
-    'static/data/genre.csv': Genre,
-    'static/data/titles.csv': Title,
-    'static/data/genre_title.csv': GenreTitle,
-    'static/data/users.csv': User,
-    'static/data/review.csv': Review,
-    'static/data/comments.csv': Comment,
+    os.path.join(short_way, 'category.csv'): Category,
+    os.path.join(short_way, 'genre.csv'): Genre,
+    os.path.join(short_way, 'titles.csv'): Title,
+    os.path.join(short_way, 'genre_title.csv'): GenreTitle,
+    os.path.join(short_way, 'users.csv'): User,
+    os.path.join(short_way, 'review.csv'): Review,
+    os.path.join(short_way, 'comments.csv'): Comment,
 }
 
 

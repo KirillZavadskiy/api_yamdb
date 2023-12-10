@@ -6,41 +6,27 @@ from django.db import IntegrityError
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, permissions, viewsets
+from rest_framework import filters, permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import (
-    SAFE_METHODS, IsAuthenticatedOrReadOnly,
-)
+from rest_framework.permissions import SAFE_METHODS, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
 from api.filters import TitleFilter
-from api.permissions import (IsAdminOrReadOnly, IsAuthorOrModerAdminPermission,
+from api.mixins import CreateListDestroyViewSet
+from api.permissions import (AdminOrReadOnly, IsAuthorOrModerAdminPermission,
                              UserIsAdmin)
-from api.serializers import (
-    CategorySerializer, CommentSerializer,
-    GenreSerializer, ReviewSerializer,
-    SignUpSerializer,
-    TitleReadSerializer, TitleWriteSerializer,
-    TokenSerializer, UserSerializer,
-)
-from reviews.models import Category, Comment, Genre, Review, Title
+from api.serializers import (CategorySerializer, CommentSerializer,
+                             GenreSerializer, ReviewSerializer,
+                             SignUpSerializer, TitleReadSerializer,
+                             TitleWriteSerializer, TokenSerializer,
+                             UserSerializer)
+from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
 HTTP_METHOD_WITHOUT_PUT = ('get', 'post', 'patch', 'delete')
-
-
-class CreateListDestroyViewSet(mixins.CreateModelMixin,
-                               mixins.ListModelMixin,
-                               mixins.DestroyModelMixin,
-                               viewsets.GenericViewSet):
-    """Дженерик для операций retrieve/create/list."""
-
-    lookup_field = 'slug'
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
 
 
 class CategoryViewSet(CreateListDestroyViewSet):
@@ -48,10 +34,7 @@ class CategoryViewSet(CreateListDestroyViewSet):
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (
-        IsAuthenticatedOrReadOnly,
-        IsAdminOrReadOnly,
-    )
+    permission_classes = (AdminOrReadOnly,)
 
 
 class GenreViewSet(CreateListDestroyViewSet):
@@ -59,10 +42,7 @@ class GenreViewSet(CreateListDestroyViewSet):
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (
-        IsAuthenticatedOrReadOnly,
-        IsAdminOrReadOnly,
-    )
+    permission_classes = (AdminOrReadOnly,)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -73,10 +53,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     ).order_by('name')
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
-    permission_classes = (
-        IsAuthenticatedOrReadOnly,
-        IsAdminOrReadOnly,
-    )
+    permission_classes = (AdminOrReadOnly,)
     http_method_names = HTTP_METHOD_WITHOUT_PUT
 
     def get_serializer_class(self):
@@ -116,21 +93,21 @@ class CommentViewSet(viewsets.ModelViewSet):
     )
     http_method_names = HTTP_METHOD_WITHOUT_PUT
 
-    def perform_create(self, serializer):
-        """Создание нового коммента."""
+    def get_review(self):
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, id=title_id)
         review_id = self.kwargs.get('review_id')
-        review = get_object_or_404(Review, id=review_id, title=title)
-        serializer.save(author=self.request.user, review=review)
+        return get_object_or_404(Review, id=review_id, title=title)
+
+    def perform_create(self, serializer):
+        """Создание нового коммента."""
+
+        serializer.save(author=self.request.user, review=self.get_review())
 
     def get_queryset(self):
         """Получение кверисета."""
-        title_id = self.kwargs.get('title_id')
-        title = get_object_or_404(Title, id=title_id)
-        review_id = self.kwargs.get('review_id')
-        review = get_object_or_404(Review, id=review_id, title=title)
-        return Comment.objects.filter(review=review)
+
+        return self.get_review().comments.all()
 
 
 class SignUpAPIView(APIView):
