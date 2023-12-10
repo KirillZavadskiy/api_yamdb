@@ -1,6 +1,20 @@
+import re
+
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import RegexValidator
+from django.core.exceptions import ValidationError
 from django.db import models
+
+
+def username_validator(value):
+    unmatched = re.sub(r'^[\w.@+-]+\Z', '', value)
+    if value == 'me':
+        raise ValidationError('Нельзя использовать имя "me"')
+    elif value in re.sub(r'^[\w.@+-]+\Z', '', value):
+        raise ValidationError(
+            f'Имя не может включать слудующие знаки: {unmatched}',
+        )
+    return value
 
 
 class User(AbstractUser):
@@ -11,28 +25,29 @@ class User(AbstractUser):
     ADMIN = 'admin'
 
     USER_ROLES = (
-        (USER, 'user'),
-        (MODERATOR, 'moderator'),
-        (ADMIN, 'admin'),
+        (USER, 'Пользователь'),
+        (MODERATOR, 'Модератор'),
+        (ADMIN, 'Админ'),
     )
 
     username = models.CharField(
-        max_length=150,
+        max_length=settings.USERNAME_LENGTH,
         unique=True,
-        validators=([RegexValidator(regex=r'^[\w.@+-]+\Z')]),
+        validators=(username_validator, ),
     )
     email = models.EmailField(
-        max_length=254,
+        max_length=settings.EMAIL_LENGTH,
         unique=True,
     )
     first_name = models.CharField(
         verbose_name='Имя.',
-        max_length=150,
+        max_length=settings.FIRST_NAME_LENGTH,
         blank=True,
-        null=True)
+        null=True,
+    )
     last_name = models.CharField(
         verbose_name='Фамилия.',
-        max_length=150,
+        max_length=settings.LAST_NAME_LENGTH,
         blank=True,
         null=True,
     )
@@ -43,7 +58,7 @@ class User(AbstractUser):
     )
     role = models.CharField(
         verbose_name='Роль',
-        max_length=100,
+        max_length=settings.ROLE_LENGTH,
         choices=USER_ROLES,
         default=USER,
         blank=True,
@@ -52,7 +67,7 @@ class User(AbstractUser):
         verbose_name='Код',
         null=True,
         max_length=40,
-        blank=True,
+        blank=True
     )
 
     class Meta:

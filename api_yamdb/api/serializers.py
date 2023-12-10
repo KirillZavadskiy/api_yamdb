@@ -1,3 +1,6 @@
+import re
+
+from django.conf import settings
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
@@ -160,13 +163,13 @@ class SignUpSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(max_length=254)
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+\Z',
-        max_length=150,
+        max_length=settings.USERNAME_LENGTH,
         required=True,
     )
 
     class Meta:
         model = User
-        fields = ['username', 'email']
+        fields = ('username', 'email')
 
     def validate_username(self, username):
         if username == 'me':
@@ -174,14 +177,20 @@ class SignUpSerializer(serializers.ModelSerializer):
         return username
 
 
-class TokenSerializer(serializers.ModelSerializer):
+class TokenSerializer(serializers.Serializer):
     """
     Сериализатор для получения токена. Использует confirmation_code.
     Если питест не съест еще имя пользователя придется использовать.
     """
-
-    confirmation_code = serializers.CharField(required=True)
+    username = serializers.CharField(
+        required=True,
+        max_length=settings.USERNAME_LENGTH,
+    )
+    confirmation_code = serializers.CharField(
+        required=True,
+        max_length=settings.CON_CODE_LENGTH,
+    )
 
     class Meta:
         model = User
-        fields = ['username', 'confirmation_code']
+        fields = ('username', 'confirmation_code')

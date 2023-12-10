@@ -1,6 +1,7 @@
 import http
-import uuid
 
+from django.conf import settings
+from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.db.models import Avg
@@ -113,9 +114,7 @@ class SignUpAPIView(APIView):
     """Отправляем запрос с именем и почтой. Джанго высылает письмо на почту."""
 
     def post(self, *args, **kwargs):
-        print(*args, **kwargs)
         serializer = SignUpSerializer(data=self.request.data)
-        print(serializer)
         serializer.is_valid(raise_exception=True)
         username = serializer.validated_data.get('username')
         email = serializer.validated_data.get('email')
@@ -130,23 +129,15 @@ class SignUpAPIView(APIView):
                 detail='Нужно проверить имя пользователя и почту.',
             )
 
-        confirmation_code = self.make_token(user)
+        confirmation_code = default_token_generator.make_token(user)
 
         send_mail(subject='Подтверждение пользователя',
                   message=f'Код : {confirmation_code}',
-                  from_email='new@yamdb.ru',
+                  from_email=settings.SENDER_EMAIL,
                   recipient_list=[user.email])
         return Response({'email': f'{email}',
                          'username': f'{username}'},
                         status=http.HTTPStatus.OK)
-
-    @staticmethod
-    def make_token(user: User) -> uuid.UUID:
-        """Создаем код подтверждения и сохраняем в модели юзера."""
-        confirmation_code: uuid.UUID = uuid.uuid4()
-        user.confirmation_code = confirmation_code
-        user.save()
-        return confirmation_code
 
 
 class TokenAPIView(APIView):
@@ -197,4 +188,4 @@ class UserViewSet(viewsets.ModelViewSet):
                 partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save(role=request.user.role)
-        return Response(serializer.data)
+        return Response(serializer.data, status=http.HTTPStatus.OK)
