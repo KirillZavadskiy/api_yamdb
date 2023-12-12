@@ -89,45 +89,33 @@ class TitleWriteSerializer(TitleSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Review."""
-
     author = serializers.SlugRelatedField(
-        slug_field='username',
-        read_only=True
-    )
-    title = serializers.SlugRelatedField(
-        slug_field='id',
-        many=False,
-        read_only=True,
+        slug_field='username', read_only=True,
+        default=serializers.CurrentUserDefault()
     )
 
     class Meta:
         model = Review
-        fields = (
-            'id',
-            'text',
-            'author',
-            'score',
-            'pub_date',
-            'title',
-        )
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
 
     def validate(self, data):
-        """Запрещает пользователям оставлять повторные отзывы."""
-        if not self.context.get('request').method == 'POST':
+        if self.context['request'].method != 'POST':
             return data
-        author = self.context.get('request').user
-        title_id = self.context.get('view').kwargs.get('title_id')
-        if Review.objects.filter(author=author, title=title_id).exists():
+
+        title_id = self.context['view'].kwargs.get('title_id')
+        author = self.context['request'].user
+        if Review.objects.filter(
+                author=author, title=title_id).exists():
             raise serializers.ValidationError(
-                'Вы уже оставляли отзыв на это произведение.',
+                'Вы уже написали отзыв к этому произведению.'
             )
         return data
 
     def validate_score(self, value):
-        """Проверка, что оценка в диапазоне от 1 до 10."""
         if not 1 <= value <= 10:
-            raise serializers.ValidationError('Оценка может быть от 1 до 10!')
+            raise serializers.ValidationError(
+                'Оценкой может быть целое число в диапазоне от 1 до 10.'
+            )
         return value
 
 
