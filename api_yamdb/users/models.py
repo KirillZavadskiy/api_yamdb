@@ -67,7 +67,7 @@ class User(AbstractUser):
         verbose_name='Код',
         null=True,
         max_length=40,
-        blank=True
+        blank=True,
     )
 
     class Meta:

@@ -64,8 +64,8 @@ class Title(models.Model):
         validators=[
             MaxValueValidator(
                 int(timezone.now().year),
-                message='Год выпуска превышает текущий.'
-            )
+                message='Год выпуска превышает текущий.',
+            ),
         ],
     )
     description = models.TextField(

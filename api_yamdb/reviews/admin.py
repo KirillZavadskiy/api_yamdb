@@ -57,7 +57,7 @@ class TitleAdmin(admin.ModelAdmin):
     list_filter = ('name',)
     list_editable = ('category',)
 
-    @admin.display(description='Рейтинг',)
+    @admin.display(description='Рейтинг')
     def get_rating(self, object):
         """Вычисляет рейтинг произведения."""
         rating = object.reviews.aggregate(average_score=Avg('score'))
@@ -65,7 +65,7 @@ class TitleAdmin(admin.ModelAdmin):
             return round(r, 1)
         return r
 
-    @admin.display(description='Жанр',)
+    @admin.display(description='Жанр')
     def display_genre(self, object):
         return ' ,'.join((genre.name for genre in object.genre.all()))
 

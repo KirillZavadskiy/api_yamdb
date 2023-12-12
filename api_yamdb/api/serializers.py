@@ -89,7 +89,7 @@ class TitleWriteSerializer(TitleSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         slug_field='username', read_only=True,
-        default=serializers.CurrentUserDefault()
+        default=serializers.CurrentUserDefault(),
     )
 
     class Meta:
@@ -105,14 +105,14 @@ class ReviewSerializer(serializers.ModelSerializer):
         if Review.objects.filter(
                 author=author, title=title_id).exists():
             raise serializers.ValidationError(
-                'Вы уже написали отзыв к этому произведению.'
+                'Вы уже написали отзыв к этому произведению.',
             )
         return data
 
     def validate_score(self, value):
         if not 1 <= value <= 10:
             raise serializers.ValidationError(
-                'Оценкой может быть целое число в диапазоне от 1 до 10.'
+                'Оценкой может быть целое число в диапазоне от 1 до 10.',
             )
         return value
 
