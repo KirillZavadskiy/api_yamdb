@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.db.models import Avg
 from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
-from django.shortcuts import get_object_or_404
 
 admin.site.empty_value_display = 'Значение отсутствует'
 

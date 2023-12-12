@@ -74,7 +74,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     http_method_names = HTTP_METHOD_WITHOUT_PUT
 
     def get_post(self):
-           return get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        return get_object_or_404(Title, id=self.kwargs.get('title_id'))
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, title=self.get_post())
