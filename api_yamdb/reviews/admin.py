@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.db.models import Avg
+
 from reviews.models import Category, Comment, Genre, GenreTitle, Review, Title
 
 admin.site.empty_value_display = 'Значение отсутствует'
@@ -61,9 +62,9 @@ class TitleAdmin(admin.ModelAdmin):
     def get_rating(self, object):
         """Вычисляет рейтинг произведения."""
         rating = object.reviews.aggregate(average_score=Avg('score'))
-        if (r := rating.get('average_score')) is not None:
-            return round(r, 1)
-        return r
+        if (rating_title := rating.get('average_score')) is not None:
+            return round(rating_title, 1)
+        return rating_title
 
     @admin.display(description='Жанр')
     def display_genre(self, object):

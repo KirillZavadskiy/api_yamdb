@@ -34,6 +34,6 @@ v1_router.register(
     CommentViewSet, basename='comments',
 )
 urlpatterns = [
-    path('v1/', include(v1_router.urls)),
-    path('v1/auth/', include('users.urls')),
+    path('', include(v1_router.urls)),
+    path('auth/', include('users.urls')),
 ]

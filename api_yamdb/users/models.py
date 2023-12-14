@@ -1,22 +1,8 @@
-import re
-
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
-from django.core.exceptions import ValidationError
 from django.db import models
 
-from api_yamdb.settings import (EMAIL_LENGTH, FIRST_NAME_LENGTH,
-                                LAST_NAME_LENGTH, ROLE_LENGTH, USERNAME_LENGTH)
-
-
-def username_validator(value):
-    unmatched = re.sub(r'^[\w.@+-]+\Z', '', value)
-    if value == 'me':
-        raise ValidationError('Нельзя использовать имя "me"')
-    elif value in re.sub(r'^[\w.@+-]+\Z', '', value):
-        raise ValidationError(
-            f'Имя не может включать слудующие знаки: {unmatched}',
-        )
-    return value
+from users.validators import username_validator
 
 
 class User(AbstractUser):
@@ -33,42 +19,30 @@ class User(AbstractUser):
     )
 
     username = models.CharField(
-        max_length=USERNAME_LENGTH,
+        max_length=settings.USERNAME_LENGTH,
         unique=True,
-        validators=(username_validator, ),
+        validators=(username_validator,),
     )
     email = models.EmailField(
-        max_length=EMAIL_LENGTH,
+        max_length=settings.EMAIL_LENGTH,
         unique=True,
     )
-    first_name = models.CharField(
-        verbose_name='Имя.',
-        max_length=FIRST_NAME_LENGTH,
-        blank=True,
-        null=True,
-    )
-    last_name = models.CharField(
-        verbose_name='Фамилия.',
-        max_length=LAST_NAME_LENGTH,
-        blank=True,
-        null=True,
-    )
     bio = models.TextField(
-        verbose_name='Биография',
+        'Биография',
         blank=True,
         null=True,
     )
     role = models.CharField(
-        verbose_name='Роль',
-        max_length=ROLE_LENGTH,
+        'Роль',
+        max_length=settings.ROLE_LENGTH,
         choices=USER_ROLES,
         default=USER,
         blank=True,
     )
     confirmation_code = models.UUIDField(
-        verbose_name='Код',
+        'Код',
         null=True,
-        max_length=40,
+        max_length=settings.CON_CODE_LENGTH,
         blank=True,
     )
 

@@ -25,9 +25,35 @@ class GenreSerializer(serializers.ModelSerializer):
         lookup_field = 'slug'
 
 
-class TitleSerializer(serializers.ModelSerializer):
-    """Базовый сериализатор модели Title."""
+class TitleReadSerializer(serializers.ModelSerializer):
+    """Сериализатор произведения для чтения."""
 
+    rating = serializers.IntegerField(read_only=True, default=0)
+    genre = GenreSerializer(many=True)
+    category = CategorySerializer()
+
+    class Meta:
+        model = Title
+        fields = (
+            'id', 'name', 'year',
+            'rating', 'description',
+            'genre', 'category',
+        )
+
+
+class TitleWriteSerializer(serializers.ModelSerializer):
+    """Сериализатор произведения для записи."""
+
+    category = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Category.objects.all(),
+        required=False,
+    )
+    genre = serializers.SlugRelatedField(
+        slug_field='slug',
+        queryset=Genre.objects.all(),
+        many=True,
+    )
     rating = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -50,37 +76,6 @@ class TitleSerializer(serializers.ModelSerializer):
                 'Некорректно указан год выпуска.',
             )
         return value
-
-
-class TitleReadSerializer(serializers.ModelSerializer):
-    """Сериализатор произведения для чтения."""
-
-    rating = serializers.IntegerField(read_only=True, default=0)
-    genre = GenreSerializer(many=True)
-    category = CategorySerializer()
-
-    class Meta:
-        model = Title
-        fields = (
-            'id', 'name', 'year',
-            'rating', 'description',
-            'genre', 'category',
-        )
-
-
-class TitleWriteSerializer(TitleSerializer):
-    """Сериализатор произведения для записи."""
-
-    category = serializers.SlugRelatedField(
-        slug_field='slug',
-        queryset=Category.objects.all(),
-        required=False,
-    )
-    genre = serializers.SlugRelatedField(
-        slug_field='slug',
-        queryset=Genre.objects.all(),
-        many=True,
-    )
 
     def to_representation(self, instance):
         return TitleReadSerializer(instance).data
@@ -164,10 +159,12 @@ class SignUpSerializer(serializers.ModelSerializer):
 
 
 class TokenSerializer(serializers.Serializer):
-    """
-    Сериализатор для получения токена. Использует confirmation_code.
+    """Сериализатор для получения токена.
+
+    Использует confirmation_code.
     Если питест не съест еще имя пользователя придется использовать.
     """
+
     username = serializers.CharField(
         required=True,
         max_length=settings.USERNAME_LENGTH,

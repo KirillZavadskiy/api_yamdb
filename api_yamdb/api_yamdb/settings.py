@@ -24,8 +24,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'reviews.apps.ReviewsConfig',
-    'api.apps.ApiConfig',
     'users.apps.UsersConfig',
+    'api.apps.ApiConfig',
 ]
 
 MIDDLEWARE = [
@@ -146,3 +146,7 @@ LAST_NAME_LENGTH = 150
 ROLE_LENGTH = 100
 
 USERNAME_LENGTH = 150
+
+AMT_SIGN_TITLE = 30
+
+NAME_LENGTH = 256

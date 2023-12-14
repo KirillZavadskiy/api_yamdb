@@ -1,75 +1,62 @@
+from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.utils import timezone
 
+from reviews.validators import validate_year
 from users.models import User
 
-AMT_SIGN_TITLE = 30
 
-
-class Category(models.Model):
-    """Модель категории."""
+class CategoryGenreModel(models.Model):
+    """Абстрактная модель для категорий и жанров."""
 
     name = models.CharField(
-        max_length=256,
+        'Название',
+        max_length=settings.NAME_LENGTH,
         unique=True,
-        verbose_name='Название категории',
     )
     slug = models.SlugField(
+        'Уникальный слаг',
         unique=True,
-        verbose_name='Псевдоним категории',
     )
+
+    class Meta:
+        abstract = True
+        ordering = ('slug',)
+
+    def __str__(self):
+        return self.slug[:settings.AMT_SIGN_TITLE]
+
+
+class Category(CategoryGenreModel):
+    """Модель категории."""
 
     class Meta:
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
-    def __str__(self):
-        """Возвращает слаг категории."""
-        return self.slug[:AMT_SIGN_TITLE]
 
-
-class Genre(models.Model):
+class Genre(CategoryGenreModel):
     """Модель жанра."""
-
-    name = models.CharField(
-        max_length=256,
-        verbose_name='Название жанра',
-    )
-    slug = models.SlugField(
-        max_length=50,
-        unique=True,
-        verbose_name='Псевдоним жанра',
-    )
 
     class Meta:
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
-
-    def __str__(self):
-        """Возвращает слаг жанра."""
-        return self.slug[:AMT_SIGN_TITLE]
 
 
 class Title(models.Model):
     """Модель произведения."""
 
     name = models.CharField(
-        max_length=256,
-        verbose_name='Название произведения',
+        'Название произведения',
+        max_length=settings.NAME_LENGTH,
     )
     year = models.PositiveSmallIntegerField(
+        'Год выпуска',
         null=True,
-        verbose_name='Год выпуска',
-        validators=[
-            MaxValueValidator(
-                int(timezone.now().year),
-                message='Год выпуска превышает текущий.',
-            ),
-        ],
+        validators=(validate_year,)
     )
     description = models.TextField(
-        verbose_name='Описание произведения',
+        'Описание произведения',
         null=True,
         blank=True,
     )
@@ -89,10 +76,11 @@ class Title(models.Model):
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
         default_related_name = 'titles'
+        ordering = ('-year',)
 
     def __str__(self):
         """Возвращает название произведения."""
-        return self.name[:AMT_SIGN_TITLE]
+        return self.name[:settings.AMT_SIGN_TITLE]
 
 
 class GenreTitle(models.Model):
@@ -119,21 +107,37 @@ class GenreTitle(models.Model):
         )
 
     def __str__(self):
-        return f'{self.title} {self.genre}'[:AMT_SIGN_TITLE]
+        return f'{self.title} {self.genre}'[:settings.AMT_SIGN_TITLE]
 
 
-class Review(models.Model):
-    """Модель ревью (отзывы на произведения)."""
+class ReviewCommentModel(models.Model):
+    """Абстрактная модель для отзывов и комментариев."""
 
-    text = models.TextField(verbose_name='текст ревью')
+    text = models.TextField('текст')
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         verbose_name='Автор',
     )
+    pub_date = models.DateTimeField(
+        'Дата публикации',
+        auto_now_add=True,
+    )
+
+    class Meta:
+        abstract = True
+        ordering = ('-pub_date',)
+
+    def __str__(self):
+        return self.text[:settings.AMT_SIGN_TITLE]
+
+
+class Review(ReviewCommentModel):
+    """Модель ревью (отзывы на произведения)."""
+
     score = models.PositiveSmallIntegerField(
+        'Оценка',
         default=None,
-        verbose_name='Оценка',
         validators=(
             MinValueValidator(
                 1,
@@ -145,10 +149,6 @@ class Review(models.Model):
             ),
         ),
     )
-    pub_date = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Дата публикации',
-    )
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
@@ -159,7 +159,6 @@ class Review(models.Model):
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         default_related_name = 'reviews'
-        ordering = ('-pub_date',)
         constraints = (
             models.UniqueConstraint(
                 fields=('author', 'title'),
@@ -167,24 +166,10 @@ class Review(models.Model):
             ),
         )
 
-    def __str__(self):
-        """Возвращает текст отзыва."""
-        return self.text[:AMT_SIGN_TITLE]
 
-
-class Comment(models.Model):
+class Comment(ReviewCommentModel):
     """Модель комментария."""
 
-    text = models.TextField(verbose_name='текст')
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        verbose_name='Aвтор',
-    )
-    pub_date = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Дата публикации',
-    )
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
@@ -195,8 +180,3 @@ class Comment(models.Model):
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
         default_related_name = 'comments'
-        ordering = ('-pub_date',)
-
-    def __str__(self):
-        """Возвращает текст комментария."""
-        return self.text[:AMT_SIGN_TITLE]

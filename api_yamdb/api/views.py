@@ -35,7 +35,6 @@ class CategoryViewSet(CreateListDestroyViewSet):
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (AdminOrReadOnly,)
 
 
 class GenreViewSet(CreateListDestroyViewSet):
@@ -43,7 +42,6 @@ class GenreViewSet(CreateListDestroyViewSet):
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (AdminOrReadOnly,)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -94,19 +92,21 @@ class CommentViewSet(viewsets.ModelViewSet):
     http_method_names = HTTP_METHOD_WITHOUT_PUT
 
     def get_review(self):
-        title_id = self.kwargs.get('title_id')
-        title = get_object_or_404(Title, id=title_id)
-        review_id = self.kwargs.get('review_id')
-        return get_object_or_404(Review, id=review_id, title=title)
+        return get_object_or_404(
+            Review,
+            id=self.kwargs.get('review_id'),
+            title=get_object_or_404(
+                Title,
+                id=self.kwargs.get('title_id')
+            )
+        )
 
     def perform_create(self, serializer):
         """Создание нового коммента."""
-
         serializer.save(author=self.request.user, review=self.get_review())
 
     def get_queryset(self):
         """Получение кверисета."""
-
         return self.get_review().comments.all()
 
 
@@ -147,26 +147,24 @@ class TokenAPIView(APIView):
         serializer = TokenSerializer(data=self.request.data)
         serializer.is_valid(raise_exception=True)
 
-        username = serializer.validated_data.get('username')
         confirmation_code = serializer.validated_data.get('confirmation_code')
-
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            return Response({'message': 'Не правильное имя'},
-                            status=http.HTTPStatus.NOT_FOUND)
+        user = get_object_or_404(
+            User,
+            username=serializer.validated_data.get('username')
+        )
 
         if user.confirmation_code == confirmation_code:
-            token = AccessToken.for_user(user)
-            return Response({'token': str(token)},
+            return Response({'token': str(AccessToken.for_user(user))},
                             status=http.HTTPStatus.CREATED)
         return Response({'confirmation_code': 'Не правильный код'},
                         status=http.HTTPStatus.BAD_REQUEST)
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    """Работа с пользователем от имени администратора +"""
-    """'GET', 'PATCH' для зарегистрированного пользователя"""
+    """Работа с пользователем от имени администратора.
+
+    Использует 'GET', 'PATCH' для зарегистрированного пользователя.
+    """
 
     queryset = User.objects.all()
     permission_classes = (UserIsAdmin,)
