@@ -97,8 +97,8 @@ class CommentViewSet(viewsets.ModelViewSet):
             id=self.kwargs.get('review_id'),
             title=get_object_or_404(
                 Title,
-                id=self.kwargs.get('title_id')
-            )
+                id=self.kwargs.get('title_id'),
+            ),
         )
 
     def perform_create(self, serializer):
@@ -150,7 +150,7 @@ class TokenAPIView(APIView):
         confirmation_code = serializer.validated_data.get('confirmation_code')
         user = get_object_or_404(
             User,
-            username=serializer.validated_data.get('username')
+            username=serializer.validated_data.get('username'),
         )
 
         if user.confirmation_code == confirmation_code:

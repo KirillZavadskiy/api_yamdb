@@ -53,7 +53,7 @@ class Title(models.Model):
     year = models.PositiveSmallIntegerField(
         'Год выпуска',
         null=True,
-        validators=(validate_year,)
+        validators=(validate_year,),
     )
     description = models.TextField(
         'Описание произведения',
