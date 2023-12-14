@@ -41,7 +41,7 @@ python manage.py importcsv
 - Получение списка всех категорий *http://127.0.0.1:8000/api/v1/categories/* 
 - Получение списка всех жанров *http://127.0.0.1:8000/api/v1/genres/* 
 - Получение списка всех произведений *http://127.0.0.1:8000/api/v1/titles/*
-  Request:
+Request:
 ````
 {
     "id": 1,
