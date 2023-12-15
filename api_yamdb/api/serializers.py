@@ -54,7 +54,6 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         queryset=Genre.objects.all(),
         many=True,
     )
-    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Title
@@ -65,7 +64,6 @@ class TitleWriteSerializer(serializers.ModelSerializer):
             'description',
             'genre',
             'category',
-            'rating',
         )
 
     def validate_year(self, value):

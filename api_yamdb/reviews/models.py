@@ -30,7 +30,7 @@ class CategoryGenreModel(models.Model):
 class Category(CategoryGenreModel):
     """Модель категории."""
 
-    class Meta:
+    class Meta(CategoryGenreModel.Meta):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
@@ -38,7 +38,7 @@ class Category(CategoryGenreModel):
 class Genre(CategoryGenreModel):
     """Модель жанра."""
 
-    class Meta:
+    class Meta(CategoryGenreModel.Meta):
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
 
@@ -155,7 +155,7 @@ class Review(ReviewCommentModel):
         verbose_name='Название произведения',
     )
 
-    class Meta:
+    class Meta(ReviewCommentModel.Meta):
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         default_related_name = 'reviews'
@@ -176,7 +176,7 @@ class Comment(ReviewCommentModel):
         verbose_name='Отзыв',
     )
 
-    class Meta:
+    class Meta(ReviewCommentModel.Meta):
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
         default_related_name = 'comments'
